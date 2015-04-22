@@ -12,3 +12,5 @@ http://blog.csdn.net/zhu_tianwei/article/details/45133137
 3.DNS BIND 搭建域名智能解析DNS服务器之动态添加解析
 
 http://blog.csdn.net/zhu_tianwei/article/details/45176719
+
+关于bind安装，请参考：http://blog.csdn.net/zhu_tianwei/article/details/45045431

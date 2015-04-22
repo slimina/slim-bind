@@ -1,0 +1,35 @@
+#!/bin/bash
+#@Author:slimina
+#@mail:tech@3evip.cn
+
+set -o errexit
+
+################ 检查bind配置是否正确 ##########
+#由于使用了chroot需要使用root权限
+#./bin/slim-checkconf /etc/named.conf
+
+CHECK_CONF=/home/slim/bind/sbin/named-checkconf
+BIND_CHROOT=/home/slim/chroot
+
+usage(){
+	cat <<EOF
+usage: $0 named.conf [-h]
+    h   Output this help and exit
+The named.conf file is relatvie to "chroot",such as /etc/named.conf.
+By using chroot, you must use the root user. 
+EOF
+}
+
+if [ $1 ]; then
+	if [ "$1" = "-h" ]; then
+		usage
+		exit 0
+	else
+		$CHECK_CONF -t $BIND_CHROOT $1
+		exit $?
+	fi
+else
+	echo "input \"named.conf\" file."
+	exit 1
+fi
+

@@ -1,0 +1,130 @@
+#!/bin/bash
+#@Author:slimina
+#@mail:tech@3evip.cn
+
+set -o errexit
+
+################ 提供添加域名(zone) ，加载配置、清空缓存 #############
+#./bin/slim-zone-randfs -s 127.0.0.1 -p953 -o a -v default -z test.com -f /var/named/zone/test.com.zone
+
+BIND_ROOT=/home/slim/bind
+BIND_CHROOT=/home/slim/chroot
+
+RNDC=$BIND_ROOT/sbin/rndc
+RNDCKEY=$BIND_CHROOT/etc/rndc.key
+
+usage(){
+	cat <<EOF
+usage: $0  [-s server -p port -o [r|a|n|d|f|s] -v view -z zone -f zonefile] [-h]
+command is one of the following:
+    s 	bind server ip(default:127.0.0.1)
+    p 	bind server port(default:953)
+    o   operation type
+	r	reload configuration file and zones.
+	a 	add zone to given view. Requires new-zone-file option.
+	n	resend NOTIFY messages for the zone.
+	d	removes zone from given view.
+	f	flushes the server's caches for a view or zone.
+	s	display status of the server.
+    v 	view name
+    z 	zone name
+    f	zone file
+    h	Output this help and exit	
+when the zone doesn't exit,we can call the rndc to add the zone dynamicly,which 'view' 'zone' 'zonefile' must be used.
+the zonefile is relatvie to "chroot",such as /var/named/zone/test.com.zone.
+EOF
+}
+
+while getopts "s:p:o:v:z:f:h" op; do
+	case $op in
+	    s)
+		bind_server_ip=$OPTARG
+		;;
+	    p)
+		bind_server_port=$OPTARG
+		;;
+	    o)
+		op_type=$OPTARG
+		;;
+	    v)
+		view_name=$OPTARG
+		;;
+	    z)
+		zone=$OPTARG
+		;;
+	    f)
+		zonefile=$OPTARG
+		;;
+	    h)
+		usage
+		exit 0
+		;;
+	esac
+done
+
+if [ ! $bind_server_ip ]; then
+	bind_server_ip="127.0.0.1"
+fi
+
+if [ ! $bind_server_port ]; then
+        bind_server_port=953
+fi
+
+if [ "$op_type" = "r" ]; then
+	if [[ -n $view_name && -n $zone ]]; then
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY freeze $zone IN $view_name
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY reload $zone IN $view_name
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY thaw $zone IN $view_name
+		exit $?
+	else
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY freeze
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY reload
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY thaw
+		exit $?
+	fi
+elif [ "$op_type" = "a" ]; then
+	if [[ -n $view_name && -n $zone && -n $zonefile ]]; then
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY addzone $zone IN $view_name "{type master; file \"$zonefile\";allow-update {permit_allow_update;};};"
+		exit $?
+	else
+		exit 1
+	fi
+elif [ "$op_type" = "n" ]; then
+	if [[ -n $view_name && -n $zone ]]; then
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY notify $zone IN $view_name
+		exit $?
+	else
+		exit 1
+	fi	
+elif [ "$op_type" = "d" ]; then
+	if [[ -n $view_name && -n $zone ]]; then
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY freeze $zone IN $view_name
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY thaw $zone IN $view_name
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY delzone $zone IN $view_name
+		rm -rf $BIND_CHROOT/var/named/zone/$view_name/$zone*
+		exit $?
+	else
+		exit 1
+	fi
+elif [ "$op_type" = "f" ]; then
+	if [[ -n $view_name && -n $zone ]]; then
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY flushtree $zone $view_name
+		exit $?
+	elif [[ -n $view_name ]]; then
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY flush $view_name
+		exit $?
+	elif [[ -n $zone ]]; then
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY flushtree $zone
+		exit $?
+	else
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY flush
+		exit $?
+	fi
+elif [ "$op_type" = "s" ]; then
+	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY status
+	exit $?
+else
+	echo "$0 -o [r|a|n|d|f|s]"
+	exit 1
+fi
+

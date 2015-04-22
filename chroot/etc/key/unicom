@@ -1,0 +1,4 @@
+key "unicom" {
+	algorithm	hmac-md5;
+	secret "8vRoN8kv9j9HpYmNhT/aL7vN16aWOmlCNX+NhqKbYtk=";
+};

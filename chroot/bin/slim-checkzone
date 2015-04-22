@@ -1,0 +1,41 @@
+#!/bin/bash
+#@Author:slimina
+#@mail:tech@3evip.cn
+
+set -o errexit
+
+################ 检查域名zone是否正确 ##########
+#./bin/slim-checkzone -z test.com -f var/named/zone/test.com.zone
+
+CHECK_ZONE=/home/slim/bind/sbin/named-checkzone
+
+usage(){
+	cat <<EOF
+usage: $0 [-z zone -f zonefile] [-h]
+    z	zone name
+    f	zone file
+    h	output this help and exit
+EOF
+}
+
+while getopts "z:f:h" op; do
+	case $op in
+	    z)		#check zone set zone name
+		zone=$OPTARG
+		;;
+	    f)		#check zone set zone file
+		zonefile=$OPTARG
+		;;
+	    h)
+		usage
+		exit 0
+		;;
+	esac
+done
+
+if [[ -n $zone && -n $zonefile ]]; then
+	$CHECK_ZONE $zone $zonefile
+	exit $?
+else
+	exit 1
+fi

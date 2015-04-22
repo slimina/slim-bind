@@ -1,0 +1,83 @@
+#!/bin/bash
+#@Author:slimina
+#@mail:tech@3evip.cn
+
+set -o errexit
+
+################ 新增删除域名的解析记录RR ##########
+#./slim-rdata-ad -s 127.0.0.1 -p 53 -o a -v cmcc -r "www.test.com 6000 IN A 192.168.0.2"
+
+BIND_NSUPDATE=/home/slim/bind/bin/nsupdate
+BIND_CHROOT=/home/slim/chroot
+
+usage(){
+	cat <<EOF
+usage: $0 [-s server -p port -o [a|d] -v view -r rdata ] [-h]
+    s   bind server ip(default:127.0.0.1)
+    p   bind server port(default:53)
+    o   operation type
+	a  add zone record
+	d  delete zone record
+    v   view name
+    r	zone rdata string,such as "www.slimsmart.cn 3600 IN A 1.1.1.1"
+    h	output this help and exit
+EOF
+}
+
+while getopts "s:p:o:v:r:h" op; do
+	case $op in
+	    s)
+                bind_server_ip=$OPTARG
+                ;;
+            p)
+                bind_server_port=$OPTARG
+                ;;
+            o)
+                op_type=$OPTARG
+                ;;
+	    v)
+		view_name=$OPTARG
+		;;
+	    r)
+		rdata=$OPTARG
+		;;
+	    h)
+		usage
+		exit 0
+		;;
+	esac
+done
+
+if [ ! $bind_server_ip ]; then
+        bind_server_ip="127.0.0.1"
+fi
+
+if [ ! $bind_server_port ]; then
+        bind_server_port=53
+fi
+
+if [ "$op_type" = "a" ]; then
+	if [[ -n $view_name && -n $rdata ]]; then
+		nsserver="server $bind_server_ip $bind_server_port"
+		nsrdata="update add $rdata"
+		nssend="send"
+		echo $nsrdata
+		(echo $nsserver;usleep 0.1;echo $nsrdata;usleep 0.1;echo $nssend) | $BIND_NSUPDATE -k $BIND_CHROOT/etc/key/$view_name -v
+		exit $?
+	else
+		exit 1
+	fi
+elif [ "$op_type" = "d" ]; then
+	if [[ -n $view_name && -n $rdata ]]; then
+		nsserver="server $bind_server_ip $bind_server_port"
+                nsrdata="update delete $rdata"
+                nssend="send"
+                (echo $nsserver;usleep 0.1;echo $nsrdata;usleep 0.1;echo $nssend) | $BIND_NSUPDATE -k $BIND_CHROOT/etc/key/$view_name -v
+		exit $?
+        else
+                exit 1
+        fi
+else
+	exit 1
+fi
+

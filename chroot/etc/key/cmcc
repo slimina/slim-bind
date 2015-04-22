@@ -1,0 +1,4 @@
+key "cmcc" {
+	algorithm	hmac-md5;
+	secret "2UjYWX8B/wJsnHVgpA45VNOWBqYePlUIWdS7Y5Yl1hk=";
+};

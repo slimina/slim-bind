@@ -1,0 +1,48 @@
+#!/bin/bash
+#@Author:slimina
+#@mail:tech@3evip.cn
+
+set -o errexit
+
+################ bind启动、关闭、重启、状态 ##########
+
+#启动用户
+BIND_USER=slim
+#bind 安装目录
+BIND_PATH=/home/slim/bind
+#bind chroot目录
+CHROOT_PATH=/home/slim/chroot
+
+if [ `id -u` -ne 0 ]; then
+	echo "ERROR:For bind to port 53,must run as root."
+	exit 1
+fi
+
+case "$1" in
+	start)
+		if [ -x $BIND_PATH/sbin/named ];then
+        		$BIND_PATH/sbin/named -u $BIND_USER -t $CHROOT_PATH -c /etc/named.conf && echo "BIND Server is started."
+		fi
+		;;
+	stop)
+        	kill `cat $CHROOT_PATH/var/run/named.pid ` && echo "BIND Server is stopped."
+		;;
+	restart)
+        	echo "Restart BIND server."
+        	$0 stop
+        	sleep 3
+        	$0 start
+		;;
+	reload)
+        	$BIND_PATH/sbin/rndc -c $CHROOT_PATH/etc/rndc.conf reload
+		;;
+	status)
+        	$BIND_PATH/sbin/rndc -c $CHROOT_PATH/etc/rndc.conf status
+		;;
+	*)
+        	echo "Usage:$0 start | stop | restart |reload |status"
+        	exit 1
+		;;
+	esac
+exit 0
+

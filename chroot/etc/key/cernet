@@ -1,0 +1,4 @@
+key "cernet" {
+	algorithm	hmac-md5;
+	secret "hiX1PY+D3dX+XzZCULhujVftXOssrMYYpgH4kmtZCJg=";
+};

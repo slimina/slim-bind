@@ -1,0 +1,4 @@
+key "crtc" {
+	algorithm	hmac-md5;
+	secret "mnrSXJr9v1RcVIXtHery7h3xJPcMj7W21PPFuzGCvWU=";
+};

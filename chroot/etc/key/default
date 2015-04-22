@@ -1,0 +1,4 @@
+key "default" {
+	algorithm	hmac-md5;
+	secret "4WxebMQ9n6Y+nNRt8Lcyaiimf6ChOD83aBTxHt22r+k=";
+};

@@ -1,0 +1,4 @@
+acl "default" {
+	any;
+};
+#EOF

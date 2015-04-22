@@ -1,0 +1,4 @@
+key "chinanet" {
+	algorithm	hmac-md5;
+	secret "gbfozgBJ38KJomvaTrYaXuCldA7pYM0Hw3XVZM1tR3s=";
+};

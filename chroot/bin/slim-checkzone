@@ -37,5 +37,6 @@ if [[ -n $zone && -n $zonefile ]]; then
 	$CHECK_ZONE $zone $zonefile
 	exit $?
 else
+	echo "zone or zonefile is null."
 	exit 1
 fi

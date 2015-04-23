@@ -65,6 +65,7 @@ if [ "$op_type" = "a" ]; then
 		(echo $nsserver;usleep 0.1;echo $nsrdata;usleep 0.1;echo $nssend) | $BIND_NSUPDATE -k $BIND_CHROOT/etc/key/$view_name -v
 		exit $?
 	else
+		echo "view name or rdata is null."
 		exit 1
 	fi
 elif [ "$op_type" = "d" ]; then
@@ -75,9 +76,11 @@ elif [ "$op_type" = "d" ]; then
                 (echo $nsserver;usleep 0.1;echo $nsrdata;usleep 0.1;echo $nssend) | $BIND_NSUPDATE -k $BIND_CHROOT/etc/key/$view_name -v
 		exit $?
         else
+		echo "view name or rdata is null."
                 exit 1
         fi
-else
+else	
+	echo "the type of operation is not supported. $0 -o [a|d]"
 	exit 1
 fi
 

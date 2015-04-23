@@ -70,61 +70,62 @@ if [ ! $bind_server_port ]; then
         bind_server_port=953
 fi
 
-if [ "$op_type" = "r" ]; then
-	if [[ -n $view_name && -n $zone ]]; then
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY freeze $zone IN $view_name
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY reload $zone IN $view_name
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY thaw $zone IN $view_name
-		exit $?
-	else
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY freeze
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY reload
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY thaw
-		exit $?
-	fi
-elif [ "$op_type" = "a" ]; then
-	if [[ -n $view_name && -n $zone && -n $zonefile ]]; then
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY addzone $zone IN $view_name "{type master; file \"$zonefile\";allow-update {permit_allow_update;};};"
-		exit $?
-	else
-		exit 1
-	fi
-elif [ "$op_type" = "n" ]; then
-	if [[ -n $view_name && -n $zone ]]; then
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY notify $zone IN $view_name
-		exit $?
-	else
-		exit 1
-	fi	
-elif [ "$op_type" = "d" ]; then
-	if [[ -n $view_name && -n $zone ]]; then
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY freeze $zone IN $view_name
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY thaw $zone IN $view_name
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY delzone $zone IN $view_name
-		rm -rf $BIND_CHROOT/var/named/zone/$view_name/$zone*
-		exit $?
-	else
-		exit 1
-	fi
-elif [ "$op_type" = "f" ]; then
-	if [[ -n $view_name && -n $zone ]]; then
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY flushtree $zone $view_name
-		exit $?
-	elif [[ -n $view_name ]]; then
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY flush $view_name
-		exit $?
-	elif [[ -n $zone ]]; then
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY flushtree $zone
-		exit $?
-	else
-		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY flush
-		exit $?
-	fi
-elif [ "$op_type" = "s" ]; then
-	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY status
-	exit $?
-else
-	echo "$0 -o [r|a|n|d|f|s]"
-	exit 1
-fi
+case "$op_type" in
+	r)
+		if [[ -n $view_name && -n $zone ]]; then
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY freeze $zone IN $view_name
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY reload $zone IN $view_name
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY thaw $zone IN $view_name
+        	else
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY freeze
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY reload
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY thaw
+       		fi
+		;;
+	a)
+		if [[ -n $view_name && -n $zone && -n $zonefile ]]; then
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY addzone $zone IN $view_name "{type master; file \"$zonefile\";allow-update {permit_allow_update;};};"
+        	else
+			echo "view name,zone or zonefile is null."
+                	exit 1
+        	fi		
+		;;
+	n)
+		if [[ -n $view_name && -n $zone ]]; then
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY notify $zone IN $view_name
+        	else
+			echo "view name or zone is null."
+                	exit 1
+        	fi
+		;;
+	d)	
+		if [[ -n $view_name && -n $zone ]]; then
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY freeze $zone IN $view_name
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY thaw $zone IN $view_name
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY delzone $zone IN $view_name
+                	rm -rf $BIND_CHROOT/var/named/zone/$view_name/$zone*
+        	else
+			echo "view name or zone is null."
+                	exit 1
+        	fi
+		;;
+	f)
+		if [[ -n $view_name && -n $zone ]]; then
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY flushtree $zone $view_name
+        	elif [[ -n $view_name ]]; then
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY flush $view_name
+        	elif [[ -n $zone ]]; then
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY flushtree $zone
+        	else
+                	$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY flush
+        	fi	
+		;;
+	s)
+		$RNDC -s $bind_server_ip -p $bind_server_port -k $RNDCKEY status
+		;;
+	*)	
+		echo "the type of operation is not supported. $0 -o [r|a|n|d|f|s]"
+		;;
+	esac
+exit $?
 

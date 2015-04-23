@@ -5,7 +5,7 @@
 set -o errexit
 
 ################ 提供添加域名(zone) ，加载配置、清空缓存 #############
-#./bin/slim-zone-randfs -s 127.0.0.1 -p953 -o a -v default -z test.com -f /var/named/zone/test.com.zone
+#./bin/slim-zone-randfs -s 127.0.0.1 -p 953 -o a -v default -z test.com -f /var/named/zone/test.com.zone
 
 BIND_ROOT=/home/slim/bind
 BIND_CHROOT=/home/slim/chroot
